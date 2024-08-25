@@ -1,113 +1,125 @@
-import Image from "next/image";
+// pages/index.js
+"use client";
 
+import { Header } from "@/components/Header";
+import { Button } from "@/components/ui/button";
+import { useCallback, useState } from "react";
+import Image from "next/image";
+import { ethers } from "ethers";
+export interface AccountType {
+  address?: string;
+  balance?: string;
+  chainId?: string;
+  network?: string;
+}
+
+// Code: https://github.com/mansour-qaderi/dapp-start
 export default function Home() {
+  const [accountData, setAccountData] = useState<AccountType>({});
+  const [message, setMessage] = useState<string>("");
+
+  const _sendMessageToMetaMask = useCallback(async () => {
+    const ethereum = await window.ethereum;
+    // Create an ethers.js provider using the injected provider from MetaMask
+    // And get the signer (account) from the provider
+    const signer = await new ethers.BrowserProvider(ethereum).getSigner();
+    try {
+      // Sign the message
+      await signer.signMessage(message);
+    } catch (error) {
+      alert("User denied message signature.");
+    }
+  }, [message]);
+
+  const _onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+  };
+
+  const _connectToMetaMask = useCallback(async () => {
+    const ethereum = window.ethereum;
+    // Check if MetaMask is installed
+    if (typeof ethereum !== "undefined") {
+      try {
+        // Request access to the user's MetaMask accounts
+        const accounts = await ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        // Get the connected Ethereum address
+        const address = accounts[0];
+        // Create an ethers.js provider using the injected provider from MetaMask
+        const provider = new ethers.BrowserProvider(ethereum);
+        // Get the account balance
+        const balance = await provider.getBalance(address);
+        // Get the network ID from MetaMask
+        const network = await provider.getNetwork();
+        // Update state with the results
+        setAccountData({
+          address,
+          balance: ethers.formatEther(balance),
+          // The chainId property is a bigint, change to a string
+          chainId: network.chainId.toString(),
+          network: network.name,
+        });
+      } catch (error: Error | any) {
+        alert(`Error connecting to MetaMask: ${error?.message ?? error}`);
+      }
+    } else {
+      alert("MetaMask not installed");
+    }
+  }, []);
+  console.debug(`accountData: ${accountData}`);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    // <div className="flex min-h-screen bg-gray-100 justify-center items-center">
+    //   <Head>
+    //     <title>Wallet Connection</title>
+    //     <link rel="icon" href="/favicon.ico" />
+    //   </Head>
+
+    //   <main className="flex space-x-4">
+    //     <Button onClick={handleConnectToWallet}>Connect to wallet</Button>
+    //     <Button variant={"destructive"} onClick={handleDisconnect}>
+    //       Disconnect
+    //     </Button>
+    //   </main>
+    // </div>
+    <div
+      className={`h-full flex flex-col before:from-white after:from-sky-200 py-2  `}
+    >
+      <Header {...accountData} />
+      <div className="flex flex-col flex-1 justify-center items-center">
+        <div className="grid gap-4">
+          <Image
+            src="https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/1b363263141cf629b28155e2625b56c9/mm-logo.svg"
+            alt="MetaMask"
+            width={320}
+            height={140}
+            priority
+          />
+          {accountData?.address ? (
+            <>
+              <input
+                type="text"
+                onChange={_onChange}
+                className="border-black border-2 rounded-lg p-2"
+              />
+              <button
+                onClick={_sendMessageToMetaMask}
+                className="bg-black text-white p-4 rounded-lg"
+              >
+                Send Message
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={_connectToMetaMask}
+              className="bg-black text-white p-4 rounded-lg"
+            >
+              Connect to MetaMask
+            </button>
+          )}
         </div>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
