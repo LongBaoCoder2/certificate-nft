@@ -1,9 +1,9 @@
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+require("dotenv").config();
 
 const CertificateModule = buildModule("TokenModule", (m: any) => {
   const certificate = m.contract("Certificate");
-
   return { certificate };
 });
 
-module.exports = CertificateModule;
+export default CertificateModule;
