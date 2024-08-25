@@ -6,6 +6,7 @@ dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: "0.8.24",
+  defaultNetwork: "sepolia",
   networks: {
     sepolia: {
       url: `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`,
