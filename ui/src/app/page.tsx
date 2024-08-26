@@ -3,9 +3,10 @@
 
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { ethers } from "ethers";
+import { useRouter } from "next/navigation";
 export interface AccountType {
   address?: string;
   balance?: string;
@@ -17,6 +18,13 @@ export interface AccountType {
 export default function Home() {
   const [accountData, setAccountData] = useState<AccountType>({});
   const [message, setMessage] = useState<string>("");
+  const router = useRouter();
+
+  useEffect(() => {
+    if (accountData) {
+      router.push("/mint");
+    }
+  }, [accountData, router]);
 
   const _sendMessageToMetaMask = useCallback(async () => {
     const ethereum = await window.ethereum;
@@ -60,6 +68,9 @@ export default function Home() {
           chainId: network.chainId.toString(),
           network: network.name,
         });
+
+        if (address !== undefined) {
+        }
       } catch (error: Error | any) {
         alert(`Error connecting to MetaMask: ${error?.message ?? error}`);
       }
