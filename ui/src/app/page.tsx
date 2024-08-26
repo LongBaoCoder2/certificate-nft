@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AccountContext } from "@/context/AccountContext";
 import { Header } from "@/components/Header";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const accountContext = useContext(AccountContext);
@@ -15,10 +16,6 @@ export default function Home() {
       router.push("/mint");
     }
   }, [accountContext?.accountData, router]);
-
-  const _onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    accountContext?.setMessage(e.target.value);
-  };
 
   return (
     <div
@@ -36,25 +33,17 @@ export default function Home() {
           />
           {accountContext?.accountData?.address ? (
             <>
-              <input
-                type="text"
-                onChange={_onChange}
-                className="border-black border-2 rounded-lg p-2"
-              />
-              <button
-                onClick={accountContext._sendMessageToMetaMask}
-                className="bg-black text-white p-4 rounded-lg"
-              >
-                Send Message
-              </button>
+              <Button className="bg-black text-white p-4 rounded-lg">
+                Disconnect
+              </Button>
             </>
           ) : (
-            <button
+            <Button
               onClick={accountContext?._connectToMetaMask}
               className="bg-black text-white p-4 rounded-lg"
             >
               Connect to MetaMask
-            </button>
+            </Button>
           )}
         </div>
       </div>

@@ -12,10 +12,7 @@ export interface AccountType {
 
 interface AccountContextType {
   accountData: AccountType;
-  message: string;
-  setMessage: (message: string) => void;
   _connectToMetaMask: () => Promise<void>;
-  _sendMessageToMetaMask: () => Promise<void>;
 }
 
 export const AccountContext = createContext<AccountContextType | null>(null);
@@ -26,7 +23,6 @@ interface AccountProviderProps {
 
 export const AccountProvider = ({ children }: AccountProviderProps) => {
   const [accountData, setAccountData] = useState<AccountType>({});
-  const [message, setMessage] = useState<string>("");
 
   const _connectToMetaMask = useCallback(async () => {
     const ethereum = window.ethereum;
@@ -54,24 +50,11 @@ export const AccountProvider = ({ children }: AccountProviderProps) => {
     }
   }, []);
 
-  const _sendMessageToMetaMask = useCallback(async () => {
-    const ethereum = window.ethereum;
-    const signer = await new ethers.BrowserProvider(ethereum).getSigner();
-    try {
-      await signer.signMessage(message);
-    } catch (error) {
-      alert("User denied message signature.");
-    }
-  }, [message]);
-
   return (
     <AccountContext.Provider
       value={{
         accountData,
-        message,
-        setMessage,
         _connectToMetaMask,
-        _sendMessageToMetaMask,
       }}
     >
       {children}
